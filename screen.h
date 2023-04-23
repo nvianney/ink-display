@@ -1,6 +1,7 @@
 #ifndef screen_h
 #define screen_h
 
+#include <Arduino.h>
 #include <renderer.h>
 
 class Screen {
@@ -13,6 +14,8 @@ protected:
 
 public:
     Screen(int width, int height);
+
+    virtual String getTitle() = 0;
 
     virtual void show();
     virtual void update(float delta) = 0;

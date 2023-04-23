@@ -7,77 +7,32 @@
 #include <scheduler.h>
 
 #include "screen_manager.h"
+#include "bolt_clearance.h"
 
-#include "assets/montserrat_header_0.c"
-#include "assets/montserrat_header.fnt.c"
+#include "assets/montserrat_title_0.c"
+#include "assets/montserrat_title.fnt.c"
+#include "assets/montserrat_content_0.c"
+#include "assets/montserrat_content.fnt.c"
 
 ScreenManager *manager = nullptr;
 Renderer *renderer = nullptr;
 Scheduler *scheduler = nullptr;
-
-template<typename T>
-std::vector<std::vector<T> > arrToVector(T *data, int rows, int cols) {
-    std::vector<std::vector<T> > vec;
-    for (int r = 0; r < rows; r++) {
-        std::vector<T> row;
-        for (int c = 0; c < cols; c++) {
-            row.push_back(data[r * cols + c]);
-        }
-        vec.push_back(row);
-    }
-
-    return vec;
-}
+Font *titleFont = nullptr;
+Font *contentFont = nullptr;
 
 void setupRenderer() {
-
-    String data[] = {
-        "Bolt Size", "Normal Fit", "Close Fit", "Loose Fit",
-        "#0",   "0.076",  "0.067",  "3/32",
-        "#1",   "0.089",  "0.081",  "0.104",
-        "#2",   "0.102",  "3/32",   "0.116",
-        "#3",   "0.116",  "0.106",  "0.128",
-        "#4",   "0.128",  "0.120",  "0.144",
-        "#5",   "5/32",   "9/64",   "11/64",
-        "#6",   "0.170",  "0.154",  "0.185",
-        "#8",   "0.196",  "0.180",  "0.213",
-        "#10",  "0.221",  "0.206",  "0.238",
-        "1/4",  "9/32",   "17/64",  "19/64",
-        "5/16", "11/32",  "21/64",  "23/64",
-        "3/8",  "13/32",  "25/64",  "27/64",
-        "7/16", "15/32",  "29/64",  "31/64",
-        "1/2",  "9/16",   "17/32",  "39/64",
-        "5/8",  "11/16",  "21/32",  "47/64",
-        "3/4",  "13/16",  "25/32",  "29/32"
-    };
-
-    TableProperties properties;
-    properties.rows = 16;
-    properties.cols = 4;
-    properties.width = 350;
-    properties.height = 400;
-    float weights[4] = {0.25, 0.25, 0.25, 0.25};
-    properties.weights = (float*) malloc(sizeof(float) * 4);
-    memcpy(properties.weights, weights, sizeof(float) * 4);
-    Table *t = new Table(properties);
-    std::vector< std::vector<String> > vec = arrToVector(data, properties.rows + 1, properties.cols);
-    t->setHeader(vec[0]);
-    for (int i = 0; i < properties.rows; i++) {
-        t->addRow(vec[i+1]);
-    }
-
+    titleFont = new Font(Image::asImage(&montserrat_title_0), montserrat_title_fnt);
+    contentFont = new Font(Image::asImage(&montserrat_content_0), montserrat_content_fnt);
 
     renderer = new Renderer(880, 528);
     renderer->clearAll();
     Serial.println("Clear");
     renderer->setColor(DisplayColor::RED);
-    // renderer->setFont(smallFont);
-    renderer->setFont(new Font(Image::asImage(&montserrat_header_0), montserrat_header_fnt));
-    t->draw(renderer, 50, 50);
+    renderer->setFont(contentFont);
     renderer->render();
 
     manager = new ScreenManager();
-
+    manager->add(new BoltClearance(880, 528));
 
     // renderer->drawLine(10, 0, 100, 300);
     // renderer->drawLine(50, 100, 700, 20);
@@ -149,7 +104,14 @@ void setup() {
 
             renderer->clearAll();
             active->clearDirty();
+
+            renderer->setFont(contentFont);
             active->draw(renderer);
+
+            // title
+            renderer->setFont(titleFont);
+            renderer->drawText(50, 50, active->getTitle().c_str());
+
             renderer->render();
 
             renderer->end();
